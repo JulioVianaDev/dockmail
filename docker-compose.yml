@@ -1,0 +1,91 @@
+version: "3.8"
+
+services:
+  # ─── Mail Server (docker-mailserver) ───────────────────────────────────────
+  mailserver:
+    image: ghcr.io/docker-mailserver/docker-mailserver:latest
+    container_name: mailserver
+    hostname: mail.potira.io
+    domainname: potira.io
+    ports:
+      - "25:25"       # SMTP (receiving)
+      - "587:587"     # SMTP Submission (sending, STARTTLS)
+      - "465:465"     # SMTPS (sending, implicit TLS)
+      - "143:143"     # IMAP
+      - "993:993"     # IMAPS
+    volumes:
+      - ./data/mail:/var/mail
+      - ./data/mail-state:/var/mail-state
+      - ./data/logs:/var/log/mail
+      - ./config:/tmp/docker-mailserver
+      - /etc/localtime:/etc/localtime:ro
+      - ./certs:/certs:ro
+    environment:
+      - OVERRIDE_HOSTNAME=mail.potira.io
+      - DOMAINNAME=potira.io
+      - POSTMASTER_ADDRESS=postmaster@potira.io
+      - SSL_TYPE=manual
+      - SSL_CERT_PATH=/certs/fullchain.pem
+      - SSL_KEY_PATH=/certs/privkey.pem
+      - ENABLE_SPAMASSASSIN=0
+      - ENABLE_CLAMAV=0
+      - ENABLE_FAIL2BAN=0
+      - ENABLE_POSTGREY=0
+      - ENABLE_SASLAUTHD=0
+      - ENABLE_OPENDKIM=1
+      - ENABLE_OPENDMARC=1
+      - ONE_DIR=1
+      - POSTFIX_INET_PROTOCOLS=ipv4
+      - PERMIT_DOCKER=network
+      - SMTP_ONLY=0
+      - ENABLE_IMAP=1
+    cap_add:
+      - NET_ADMIN
+      - SYS_PTRACE
+    restart: unless-stopped
+    networks:
+      - mail_network
+    stop_grace_period: 1m
+
+  # ─── Roundcube Webmail (optional) ──────────────────────────────────────────
+  roundcube:
+    image: roundcube/roundcubemail:latest
+    container_name: roundcube
+    ports:
+      - "8025:80"
+    environment:
+      - ROUNDCUBEMAIL_DEFAULT_HOST=mailserver
+      - ROUNDCUBEMAIL_DEFAULT_PORT=143
+      - ROUNDCUBEMAIL_SMTP_SERVER=mailserver
+      - ROUNDCUBEMAIL_SMTP_PORT=587
+      - ROUNDCUBEMAIL_DB_TYPE=sqlite
+      - ROUNDCUBEMAIL_SKIN=elastic
+    volumes:
+      - ./data/roundcube:/var/roundcube/db
+    depends_on:
+      - mailserver
+    restart: unless-stopped
+    networks:
+      - mail_network
+
+  # ─── NodeMailer Test App ────────────────────────────────────────────────────
+  mailer-test:
+    build: ./node-mailer-test
+    container_name: mailer-test
+    ports:
+      - "3025:3000"
+    environment:
+      - SMTP_HOST=mailserver
+      - SMTP_PORT=587
+      - SMTP_USER=contact@potira.io
+      - SMTP_PASS=your_password_here
+      - FROM_EMAIL=contact@potira.io
+    depends_on:
+      - mailserver
+    restart: unless-stopped
+    networks:
+      - mail_network
+
+networks:
+  mail_network:
+    driver: bridge
