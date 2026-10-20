@@ -77,9 +77,10 @@ services:
     environment:
       - SMTP_HOST=mailserver
       - SMTP_PORT=587
-      - SMTP_USER=contact@potira.io
-      - SMTP_PASS=your_password_here
-      - FROM_EMAIL=contact@potira.io
+      - SMTP_USER=${SMTP_USER:-contact@potira.io}
+      - SMTP_PASS=${SMTP_PASS:?set SMTP_PASS in .env}
+      - FROM_EMAIL=${FROM_EMAIL:-contact@potira.io}
+      - ALLOWED_FROM_DOMAINS=${ALLOWED_FROM_DOMAINS:-potira.io}
     depends_on:
       - mailserver
     restart: unless-stopped

@@ -1,0 +1,11 @@
+# Secrets
+.env
+accounts.conf
+aliases.conf
+
+# Runtime data (mailboxes, DKIM private keys, TLS certs)
+data/
+config/
+certs/
+
+node_modules/

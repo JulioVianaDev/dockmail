@@ -1,0 +1,8 @@
+# ─────────────────────────────────────────────────────────────────
+#  aliases.conf — optional forwarding:  <alias> <destination>
+#  Copy to aliases.conf (git-ignored) and run ./setup.sh
+#  The alias does not need its own mailbox; mail lands in <destination>.
+# ─────────────────────────────────────────────────────────────────
+
+# no-reply@potira.io        contact@potira.io
+# julio@juliovianadev.com   contato@juliovianadev.com

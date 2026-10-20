@@ -1,0 +1,14 @@
+# ─────────────────────────────────────────────────────────────────
+#  accounts.conf — one mailbox per line:  <email> <password>
+#  Copy to accounts.conf (git-ignored) and run ./setup.sh
+#  Any domain listed here is served automatically by the mailserver.
+#  Passwords cannot contain spaces.
+# ─────────────────────────────────────────────────────────────────
+
+# potira.io
+contact@potira.io       change_me_strong_password
+postmaster@potira.io    change_me_strong_password
+
+# juliovianadev.com
+contato@juliovianadev.com     change_me_strong_password
+postmaster@juliovianadev.com  change_me_strong_password

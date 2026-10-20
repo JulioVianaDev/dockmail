@@ -18,17 +18,30 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// POST /send  →  body: { to, subject, text, html }
+// Sender domains this API may use (all must be served by the mailserver)
+const allowedFromDomains = (process.env.ALLOWED_FROM_DOMAINS || "potira.io")
+  .split(",")
+  .map((d) => d.trim().toLowerCase())
+  .filter(Boolean);
+
+// POST /send  →  body: { from?, fromName?, to, subject, text, html }
 app.post("/send", async (req, res) => {
   const { to, subject, text, html } = req.body;
+  const from = req.body.from || process.env.FROM_EMAIL || "contact@potira.io";
+  const fromName = req.body.fromName || "Potira";
 
   if (!to || !subject) {
     return res.status(400).json({ error: "Fields 'to' and 'subject' are required." });
   }
 
+  const fromDomain = String(from).split("@").pop().toLowerCase();
+  if (!allowedFromDomains.includes(fromDomain)) {
+    return res.status(400).json({ error: `Domain '${fromDomain}' is not allowed as sender.` });
+  }
+
   try {
     const info = await transporter.sendMail({
-      from: `"Potira" <${process.env.FROM_EMAIL || "contact@potira.io"}>`,
+      from: { name: fromName, address: from },
       to,
       subject,
       text: text || "",
